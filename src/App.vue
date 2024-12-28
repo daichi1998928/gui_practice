@@ -1,46 +1,86 @@
 <script setup>
+import { ref } from 'vue';
+
+const position = ref({ x: 0, y: 0 });
+let isDragging = ref(false);
+
 const handleDragStart = (event) => {
-  // ドラッグするデータを設定
-  event.dataTransfer.setData('text/plain', event.target.id);
+  isDragging.value = true;
 }
 
 const handleDragOver = (event) => {
-  // デフォルトのドラッグオーバー動作を防ぐ
   event.preventDefault();
 }
 
 const handleDrop = (event) => {
-  // デフォルトのドロップ動作を防ぐ
-  event.preventDefault();
-  
-  // ドロップ位置を取得
-  const x = event.clientX;
-  const y = event.clientY;
-  
-  // 要素の位置を更新
-  const container = event.target;
-  container.style.position = 'absolute';
-  container.style.left = `${x}px`;
-  container.style.top = `${y}px`;
+  console.log('handleDrop');
+  isDragging.value = false;
+  position.value = {
+    x: event.clientX,
+    y: event.clientY
+  };
+  console.log(position.value);
+}
+
+const handleTouchStart = (event) => {
+  isDragging.value = true;
+}
+
+const handleTouchMove = (event) => {
+  if (isDragging.value) {
+    event.preventDefault();
+    const touch = event.touches[0];
+    position.value = {
+      x: touch.clientX,
+      y: touch.clientY
+    };
+  }
+}
+
+const handleTouchEnd = () => {
+  isDragging.value = false;
 }
 </script>
 
 <template>
   <div 
-    class="container" 
-    draggable="true"
-    @touchstart="handleDragStart"
-    @touchmove="handleDragOver"
-    @touchend="handleDrop"
+    class="drop-area"
+    @dragover="handleDragOver"
+    @drop="handleDrop"
   >
+    <div 
+      class="container" 
+      draggable="true"
+      @dragstart="handleDragStart"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
+      :style="{
+        position: 'absolute',
+        left: `${position.x}px`,
+        top: `${position.y}px`
+      }"
+    >
+    </div>
   </div>
 </template>
 
 <style scoped>
+.drop-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 1;
+}
+
 .container {
   width: 250px;
   height: 250px;
   background-color: black;
-  cursor: move; /* ドラッグ可能なことを示すカーソルを表示 */
+  cursor: move;
+  touch-action: none;
+  z-index: 2;
 }
 </style>
